@@ -39,6 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'api',
     'rest_framework',
+    'django_filters',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -75,23 +77,23 @@ WSGI_APPLICATION = 'nearest_cars.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'nearest_cars_db',
-        'USER': 'postgres',
-        'PASSWORD': 'saltanat',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'nearest_cars_db',
+#         'USER': '',
+#         'PASSWORD': 'your_password',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -133,3 +135,31 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+}
+
+
+CELERY_BROKER_URL = 'sqla+sqlite:///celerydb.sqlite'
+CELERY_RESULT_BACKEND = 'db+sqlite:///celerydb.sqlite'
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_BROKER_CONNECTION_RETRY = True  # Для Celery < 6.0
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True  # Для Celery >= 6.0
+
+
+from celery.schedules import crontab
+
+CELERY_BEAT_SCHEDULE = {
+    'update-car-locations-every-3-minutes': {
+        'task': 'api.tasks.update_car_locations',
+        'schedule': crontab(minute='*/1'),  # Каждые 3 минуты
+    },
+}
+
+
+
+
+

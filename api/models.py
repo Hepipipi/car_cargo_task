@@ -32,3 +32,5 @@ class Cargo(models.Model):
 
 
 
+
+
